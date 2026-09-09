@@ -2,28 +2,25 @@ import os
 import json
 import datetime
 
-from app.user.user import get_user
 
-
-def create_chat(user_id: int, message: str, date: datetime.datetime) -> str | None:
-    # Check user
-    if get_user(user_id) is None:
-        return "User not found"
-
+def create_chat(
+    user_id: int, username: str, message: str, date: datetime.datetime
+) -> int | None:
     # Create a chat if a user send first message
     chat = {
-        "id": 0,
+        "id": None,
         "user_id": user_id,
         "messages": [
             {
-                "username": get_user(user_id)["username"],
+                "username": username,
                 "text": message,
                 "date": str(date),
                 "is-operator": False,
             }
         ],
-        "csat": 0,
+        "csat": None,
         "active": True,
+        "assigned_operator": False,
     }
 
     if os.path.exists("app/chat/chats.json"):
@@ -45,22 +42,14 @@ def create_chat(user_id: int, message: str, date: datetime.datetime) -> str | No
     with open("app/chat/chats.json", "w") as file:
         json.dump(data, file)
 
-    return "Chat created"
+    return chat["id"]
 
 
-def add_message(user_id: int, message: str, date: datetime.datetime) -> str | None:
+def add_message(user_id: int, message: dict) -> str | None:
     # Get active chat id by user
     chat_id = get_active_id_chat_by_user(user_id)
     if chat_id is None:
-        return "Chat not found"
-
-    # Create new message
-    new_message = {
-        "username": get_user(user_id)["username"],
-        "text": message,
-        "date": str(date),
-        "is-operator": False,
-    }
+        return None  # Here we can throw a custom error exception and then handle that error
 
     with open("app/chat/chats.json", "r") as file:
         data = json.load(file)
@@ -68,7 +57,7 @@ def add_message(user_id: int, message: str, date: datetime.datetime) -> str | No
     # Adding message in active chat
     for chat in data["chats"]:
         if chat["id"] == chat_id:
-            chat["messages"].append(new_message)
+            chat["messages"].append(message)
 
     with open("app/chat/chats.json", "w") as file:
         json.dump(data, file)
@@ -83,10 +72,10 @@ def get_active_id_chat_by_user(user_id: int) -> int | None:
     for chat in data["chats"]:
         if chat["id"] == user_id and chat["active"] == True:
             return chat["id"]
-    return None
+    return None  # Here we can throw a custom error exception and then handle that error
 
 
-def get_all_chats_by_user(user_id: int) -> list[dict]:
+def get_all_chats_by_user_id(user_id: int) -> list[dict]:
     with open("app/chat/chats.json", "r") as file:
         data = json.load(file)
 
@@ -99,16 +88,71 @@ def get_all_chats_by_user(user_id: int) -> list[dict]:
     return chats
 
 
+def get_chat_messages(chat_id: int) -> list[dict] | None:
+    with open("app/chat/chats.json", "r") as file:
+        data = json.load(file)
+
+    messages: list[dict] = []
+
+    for chat in data["chats"]:
+        if chat["id"] == chat_id and chat["active"] == True:
+            for message in chat["messages"]:
+                messages.append(
+                    {
+                        "username": message["username"],
+                        "text": message["text"],
+                        "date": message["date"],
+                    }
+                )
+            return messages
+    return None  # Here we can throw a custom error exception and then handle that error
+
+
 def set_csat(chat_id: int, csat: int) -> str | None:
     with open("app/chat/chats.json", "r") as file:
         data = json.load(file)
 
     for chat in data["chats"]:
-        if chat["id"] == chat_id:
+        if chat["id"] == chat_id and chat["active"] == False:
             chat["csat"] = csat
 
             with open("app/chat/chats.json", "w") as file:
                 json.dump(data, file)
 
             return "CSAT set"
-    return None
+        elif chat["id"] == chat_id and chat["active"] == True:
+            return "Chat not closed"
+    return None  # Here we can throw a custom error exception and then handle that error
+
+
+def change_operator_assignment_status(chat_id: int, status: bool) -> str | None:
+    # Sets the operator assign status in chat
+    with open("app/chat/chats.json", "r") as file:
+        data = json.load(file)
+
+    for chat in data["chats"]:
+        if chat["id"] == chat_id:
+            chat["assigned_operator"] = status
+
+            with open("app/chat/chats.json", "w") as file:
+                json.dump(data, file)
+
+            if status:
+                return "Operator assigned"
+            else:
+                return "Operator taken off from the chat"
+    return None  # Here we can throw a custom error exception and then handle that error
+
+
+def close_chat(chat_id: int) -> str | None:
+    # Closes the active chat when operator has replied to the user's question
+    with open("app/chat/chats.json", "r") as file:
+        data = json.load(file)
+
+    for chat in data["chats"]:
+        if chat["id"] == chat_id:
+            chat["active"] = False
+            with open("app/chat/chats.json", "w") as file:
+                json.dump(data, file)
+            return "Chat closed"
+    return None  # Here we can throw a custom error exception and then handle that error

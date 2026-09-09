@@ -1,16 +1,16 @@
-import datetime
-
-from app.user import user
-from app.chat import chat
+from app import utils
 
 
 def main():
-    # user.update_user("da1", "a net")
-    # chat.create_chat(
-    #     1, "hello, order not arrived, please help me", datetime.datetime.now()
-    # )
-    # chat.add_message(1, "hihi", datetime.datetime.now())
-    chat.set_csat(1, 4)
+    user_choose = input("User/Operator (u/o) or simulate process work (s): ")
+    if user_choose == "u":
+        utils.user_choice()
+    elif user_choose == "o":
+        utils.operator_choice()
+    elif user_choose == "s":
+        utils.simulate_work(101)
+    else:
+        print("Invalid input")
 
 
 if __name__ == "__main__":
