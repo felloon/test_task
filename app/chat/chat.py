@@ -13,6 +13,7 @@ def create_chat(
         "messages": [
             {
                 "username": username,
+                "id": user_id,
                 "text": message,
                 "date": str(date),
                 "is-operator": False,
@@ -47,7 +48,7 @@ def create_chat(
 
 def add_message(user_id: int, message: dict) -> str | None:
     # Get active chat id by user
-    chat_id = get_active_id_chat_by_user(user_id)
+    chat_id = get_active_chat_id_by_user_id(user_id)
     if chat_id is None:
         return None  # Here we can throw a custom error exception and then handle that error
 
@@ -65,7 +66,18 @@ def add_message(user_id: int, message: dict) -> str | None:
     return "Message added"
 
 
-def get_active_id_chat_by_user(user_id: int) -> int | None:
+def get_all_chats() -> list[dict] | None:
+    with open("app/chat/chats.json", "r") as file:
+        data = json.load(file)
+
+    chats = []
+    for chat in data["chats"]:
+        chats.append(chat)
+
+    return chats
+
+
+def get_active_chat_id_by_user_id(user_id: int) -> int | None:
     with open("app/chat/chats.json", "r") as file:
         data = json.load(file)
 
@@ -84,6 +96,20 @@ def get_all_chats_by_user_id(user_id: int) -> list[dict]:
     for chat in data["chats"]:
         if chat["user_id"] == user_id:
             chats.append(chat)
+
+    return chats
+
+
+def get_all_chats_by_operator_id(operator_id: int) -> list[dict]:
+    with open("app/chat/chats.json", "r") as file:
+        data = json.load(file)
+
+    chats = []
+
+    for chat in data["chats"]:
+        for message in chat["messages"]:
+            if message["id"] == operator_id and message["is-operator"] == True:
+                chats.append(chat)
 
     return chats
 

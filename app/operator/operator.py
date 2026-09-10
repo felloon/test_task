@@ -105,13 +105,29 @@ def update_operator(
     return None  # Here we can throw a custom error exception and then handle that error
 
 
-def get_operator(operator_id: int) -> dict | None:
+def get_operator(username: int) -> dict | None:
+    with open("app/operator/operators.json", "r") as file:
+        try:
+            operators_json = json.load(file)
+        except json.JSONDecodeError:
+            return None
+
+    for operator in operators_json["operators"]:
+        if operator["username"] == username:
+            return operator
+    return None  # Here we can throw a custom error exception and then handle that error
+
+
+def get_all_operators() -> list:
     with open("app/operator/operators.json", "r") as file:
         operators_json = json.load(file)
-        for operator in operators_json["users"]:
-            if operator["id"] == operator_id:
-                return operator
-        return None  # Here we can throw a custom error exception and then handle that error
+
+    operators = []
+
+    for operator in operators_json["operators"]:
+        operators.append(operator)
+
+    return operators
 
 
 def send_message_to_client(chat_id: int, username: str) -> str | None:
@@ -133,6 +149,7 @@ def send_message_to_client(chat_id: int, username: str) -> str | None:
             response = input()  # Operator's response
             message = {
                 "username": username,
+                "id": operator["id"],
                 "text": response,
                 "date": str(datetime.datetime.now()),
                 "is-operator": True,

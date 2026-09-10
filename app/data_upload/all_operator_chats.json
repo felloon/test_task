@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "messages": [
+      {
+        "username": 679,
+        "id": 1,
+        "text": "Try: 0",
+        "date": "2026-09-10 11:17:16.885617",
+        "is-operator": false
+      },
+      {
+        "username": 563,
+        "id": 1,
+        "text": "Ok",
+        "date": "2026-09-10 11:17:16.898851",
+        "is-operator": true
+      }
+    ],
+    "csat": null,
+    "active": true,
+    "assigned_operator": false
+  }
+]

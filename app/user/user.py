@@ -87,17 +87,35 @@ def update_user(
 
 def get_user(username: str) -> dict | None:
     with open("app/user/users.json", "r") as file:
+        try:
+            users_json = json.load(file)
+        except json.JSONDecodeError:
+            return None
+
+    for user in users_json["users"]:
+        if user["username"] == username:
+            return user
+
+    return None  # Here we can throw a custom error exception and then handle that error
+
+
+def get_all_users() -> list:
+    with open("app/user/users.json", "r") as file:
         users_json = json.load(file)
-        for user in users_json["users"]:
-            if user["username"] == username:
-                return user
-        return None  # Here we can throw a custom error exception and then handle that error
+
+    users = []
+
+    for user in users_json["users"]:
+        users.append(user)
+
+    return users
 
 
 def send_message(chat_id: int, user_id: int, message: str) -> None:
     # If
     new_message = {
         "username": get_user(user_id)["username"],
+        "id": user_id,
         "text": message,
         "date": str(datetime.datetime.now()),
         "is-operator": False,

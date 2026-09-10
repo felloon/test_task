@@ -69,20 +69,24 @@ def operator_choice() -> None:
 
 def simulate_work(times: int) -> None:
     clear_json_files()
-    for _ in range(times):
-        main_user = None
-        while main_user is None:
+    for i in range(times):
+        username = random.randint(1, 1000)
+        if user.get_user(username):
+            main_user = user.get_user(username)
+        else:
             main_user = user.create_user(
-                random.randint(1, 1000),
+                username,
                 random.randint(1, 100),
                 random.randint(1, 100),
                 random.randint(1, 100),
                 datetime.datetime.now(),
             )
-        main_operator = None
-        while main_operator is None:
+        username = random.randint(1, 1000)
+        if operator.get_operator(username):
+            main_operator = operator.get_operator(username)
+        else:
             main_operator = operator.create_operator(
-                random.randint(1, 1000),
+                username,
                 random.randint(1, 100),
                 random.randint(1, 100),
                 random.randint(1, 100),
@@ -93,7 +97,7 @@ def simulate_work(times: int) -> None:
         chat_id = chat.create_chat(
             main_user["id"],
             main_user["username"],
-            f"Try: {times}",
+            f"Try: {i}",
             datetime.datetime.now(),
         )
         operator.assign_chat(chat_id)
@@ -102,6 +106,7 @@ def simulate_work(times: int) -> None:
         if attempt == 1:
             message = {
                 "username": main_operator["username"],
+                "id": main_operator["id"],
                 "text": "Ok",
                 "date": str(datetime.datetime.now()),
                 "is-operator": True,
@@ -156,3 +161,22 @@ def clear_json_files() -> None:
     open("app/chat/chats.json", "w").close()
     open("app/operator/operators.json", "w").close()
     open("app/user/users.json", "w").close()
+
+
+def data_upload() -> None:
+    all_chats = chat.get_all_chats()
+    all_user_chats = chat.get_all_chats_by_user_id(1)
+    all_operator_chats = chat.get_all_chats_by_operator_id(1)
+    all_users = user.get_all_users()
+    all_operators = operator.get_all_operators()
+
+    with open("app/data_upload/all_chats.json", "w") as file:
+        json.dump(all_chats, file)
+    with open("app/data_upload/all_user_chats.json", "w") as file:
+        json.dump(all_user_chats, file)
+    with open("app/data_upload/all_operator_chats.json", "w") as file:
+        json.dump(all_operator_chats, file)
+    with open("app/data_upload/all_users.json", "w") as file:
+        json.dump(all_users, file)
+    with open("app/data_upload/all_operators.json", "w") as file:
+        json.dump(all_operators, file)
